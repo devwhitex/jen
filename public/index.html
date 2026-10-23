@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server Maintainer Bot • Control Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Auth Modal -->
+  <div id="authModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="badge-lock">🔒</div>
+        <h2>Admin Authentication</h2>
+        <p>Enter the dashboard passcode to access bot control systems.</p>
+      </div>
+      <form id="authForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="passcodeInput">Passcode / Secret Key</label>
+          <input type="password" id="passcodeInput" placeholder="Enter admin passcode (default: admin123)" required autocomplete="current-password">
+        </div>
+        <div id="authError" class="auth-error hidden">Invalid passcode. Please try again.</div>
+        <button type="submit" class="btn btn-primary btn-block">Unlock Dashboard</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="bot-avatar-wrapper">
+          <img id="brandAvatar" src="https://cdn.discordapp.com/embed/avatars/0.png" alt="Bot Avatar" class="bot-avatar">
+          <span class="status-dot online"></span>
+        </div>
+        <div class="brand-info">
+          <h1 id="brandName">Maintainer Bot</h1>
+          <span class="brand-tag" id="brandTag">Jen#4058</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="overview">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          <span>Overview</span>
+        </button>
+        <button class="nav-item" data-tab="antinuke">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          <span>Anti-Nuke Defender</span>
+        </button>
+        <button class="nav-item" data-tab="tickets">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"></path></svg>
+          <span>Ticket Control</span>
+        </button>
+        <button class="nav-item" data-tab="announcements">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          <span>Announcer</span>
+        </button>
+        <button class="nav-item" data-tab="autoreply">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <span>Auto-Replies</span>
+        </button>
+        <button class="nav-item" data-tab="cleaner">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+          <span>Chat Cleaner</span>
+        </button>
+        <button class="nav-item" data-tab="music">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+          <span>Music Deck</span>
+        </button>
+        <button class="nav-item" data-tab="settings">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span>Maintenance</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-session">
+          <span class="session-label">Role: Admin</span>
+          <button id="logoutBtn" class="btn-text" onclick="handleLogout()">Lock Panel</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="mobileMenuBtn" class="mobile-toggle" aria-label="Toggle Navigation">☰</button>
+          <div class="current-server-selector">
+            <label for="guildSelect">Active Server:</label>
+            <select id="guildSelect" onchange="handleGuildChange()">
+              <option value="">Loading servers...</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <div class="metric-pill">
+            <span class="pulse-indicator"></span>
+            <span id="pingValue">-- ms</span>
+          </div>
+          <div class="metric-pill">
+            <span class="pill-label">Uptime</span>
+            <span id="uptimeValue">00:00:00</span>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="fetchDashboardData()">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            <span>Sync</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Sections -->
+      <div class="tab-container">
+        
+        <!-- SECTION 1: OVERVIEW -->
+        <section id="tab-overview" class="tab-pane active">
+          <div class="section-header">
+            <h2>Command Center Overview</h2>
+            <p>Real-time status, health telemetry, and connected Discord server stats.</p>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon-wrapper purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              </div>
+              <div class="stat-data">
+                <span class="stat-title">Total Members</span>
+                <span class="stat-number" id="statMembers">--</span>
+                <span class="stat-subtitle">Across active servers</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon-wrapper blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+              </div>
+              <div class="stat-data">
+                <span class="stat-title">Guilds / Servers</span>
+                <span class="stat-number" id="statGuilds">--</span>
+                <span class="stat-subtitle">Connected instances</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon-wrapper emerald">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+              </div>
+              <div class="stat-data">
+                <span class="stat-title">Gateway Ping</span>
+                <span class="stat-number" id="statPing">-- ms</span>
+                <span class="stat-subtitle">Discord API latency</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon-wrapper orange">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              </div>
+              <div class="stat-data">
+                <span class="stat-title">Loaded Commands</span>
+                <span class="stat-number" id="statCommands">49</span>
+                <span class="stat-subtitle">Slash modules operational</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Control Cards -->
+          <div class="dashboard-split">
+            <div class="card">
+              <div class="card-header">
+                <h3>⚡ Quick Actions</h3>
+              </div>
+              <div class="card-body action-buttons-grid">
+                <button class="action-btn" onclick="switchTab('announcements')">
+                  <span class="action-emoji">📢</span>
+                  <div class="action-text">
+                    <strong>Send Announcement</strong>
+                    <small>Post rich embed to any channel</small>
+                  </div>
+                </button>
+                <button class="action-btn" onclick="switchTab('cleaner')">
+                  <span class="action-emoji">🧹</span>
+                  <div class="action-text">
+                    <strong>Purge Messages</strong>
+                    <small>Bulk delete or filter chat</small>
+                  </div>
+                </button>
+                <button class="action-btn" onclick="switchTab('autoreply')">
+                  <span class="action-emoji">💬</span>
+                  <div class="action-text">
+                    <strong>New Auto-Reply</strong>
+                    <small>Create instant keyword triggers</small>
+                  </div>
+                </button>
+                <button class="action-btn" onclick="switchTab('settings')">
+                  <span class="action-emoji">🔒</span>
+                  <div class="action-text">
+                    <strong>Server Lockdown</strong>
+                    <small>Toggle maintenance mode</small>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3>📋 System Information</h3>
+              </div>
+              <div class="card-body">
+                <ul class="info-list">
+                  <li>
+                    <span class="info-label">Bot ID:</span>
+                    <code id="infoBotId" class="code-pill">1562740863631622174</code>
+                  </li>
+                  <li>
+                    <span class="info-label">Node.js Version:</span>
+                    <span id="infoNode" class="info-val">v22.x</span>
+                  </li>
+                  <li>
+                    <span class="info-label">Discord.js:</span>
+                    <span class="info-val">v14.27.0</span>
+                  </li>
+                  <li>
+                    <span class="info-label">Database:</span>
+                    <span class="info-val">SQLite3 (Active & Synced)</span>
+                  </li>
+                  <li>
+                    <span class="info-label">Web Server:</span>
+                    <span class="badge-success">Port 3000 (Keep-Alive Ready)</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 2: ANNOUNCEMENTS -->
+        <section id="tab-announcements" class="tab-pane">
+          <div class="section-header">
+            <h2>Rich Announcement Publisher</h2>
+            <p>Publish professional embeds with banners, badges, and mentions directly from this panel.</p>
+          </div>
+
+          <div class="dashboard-split reverse-mobile">
+            <!-- Form -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Compose Announcement</h3>
+              </div>
+              <div class="card-body">
+                <form id="announcementForm" onsubmit="handleSendAnnouncement(event)">
+                  <div class="form-group">
+                    <label for="annChannelSelect">Target Channel *</label>
+                    <select id="annChannelSelect" required>
+                      <option value="">Select text channel...</option>
+                    </select>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group flex-1">
+                      <label for="annTitle">Title *</label>
+                      <input type="text" id="annTitle" placeholder="e.g. Major Server Update v2.0" required oninput="updateEmbedPreview()">
+                    </div>
+                    <div class="form-group flex-1">
+                      <label for="annBadge">Category Badge</label>
+                      <select id="annBadge" onchange="updateEmbedPreview()">
+                        <option value="📢 ANNOUNCEMENT">📢 ANNOUNCEMENT</option>
+                        <option value="🚀 MAJOR UPDATE">🚀 MAJOR UPDATE</option>
+                        <option value="🎉 GIVEAWAY">🎉 GIVEAWAY</option>
+                        <option value="⚠️ IMPORTANT NOTICE">⚠️ IMPORTANT NOTICE</option>
+                        <option value="🛠️ MAINTENANCE">🛠️ MAINTENANCE</option>
+                        <option value="✨ EVENT">✨ EVENT</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="annDesc">Message / Description (Markdown supported) *</label>
+                    <textarea id="annDesc" rows="5" placeholder="Write your announcement content here..." required oninput="updateEmbedPreview()"></textarea>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group flex-1">
+                      <label for="annImage">Banner Image URL (Optional)</label>
+                      <input type="url" id="annImage" placeholder="https://example.com/banner.png" oninput="updateEmbedPreview()">
+                    </div>
+                    <div class="form-group flex-1">
+                      <label for="annColor">Embed Accent Color</label>
+                      <div class="color-picker-row">
+                        <input type="color" id="annColor" value="#5865F2" oninput="updateEmbedPreview()">
+                        <input type="text" id="annColorHex" value="#5865F2" class="hex-input" oninput="syncHexColor(this.value)">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="annPing">Audience Mention</label>
+                    <select id="annPing">
+                      <option value="none">No Ping (Silent)</option>
+                      <option value="everyone">@everyone</option>
+                      <option value="here">@here</option>
+                    </select>
+                  </div>
+
+                  <button type="submit" id="btnPublishAnn" class="btn btn-primary btn-block">
+                    <span>🚀 Publish to Discord Channel</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Live Discord Preview -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Live Discord Preview</h3>
+              </div>
+              <div class="card-body">
+                <div class="discord-preview-container">
+                  <div class="discord-message">
+                    <img id="previewBotAvatar" src="https://cdn.discordapp.com/embed/avatars/0.png" class="discord-msg-avatar" alt="Bot Avatar">
+                    <div class="discord-msg-content">
+                      <div class="discord-msg-header">
+                        <span class="discord-author-name" id="previewBotName">Jen</span>
+                        <span class="discord-bot-tag">BOT</span>
+                        <span class="discord-timestamp">Today at 12:00 PM</span>
+                      </div>
+                      <div id="previewPingMention" class="discord-ping-line hidden">@everyone</div>
+                      
+                      <!-- The Embed -->
+                      <div class="discord-embed" id="previewEmbed">
+                        <div class="discord-embed-badge" id="previewBadge">📢 ANNOUNCEMENT</div>
+                        <h4 class="discord-embed-title" id="previewTitle">Major Server Update v2.0</h4>
+                        <div class="discord-embed-desc" id="previewDesc">Write your announcement content here to preview how it looks inside Discord.</div>
+                        <img id="previewImage" class="discord-embed-image hidden" alt="Banner Preview">
+                        <div class="discord-embed-footer">
+                          <span>Server Maintainer • Announcement</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 3: AUTO-REPLIES -->
+        <section id="tab-autoreply" class="tab-pane">
+          <div class="section-header">
+            <h2>Auto-Reply Trigger Engine</h2>
+            <p>Manage permanent keyword triggers stored in the bot's SQLite database.</p>
+          </div>
+
+          <div class="dashboard-split">
+            <!-- Add Trigger Form -->
+            <div class="card">
+              <div class="card-header">
+                <h3>➕ Create New Auto-Reply</h3>
+              </div>
+              <div class="card-body">
+                <form id="autoReplyForm" onsubmit="handleCreateAutoReply(event)">
+                  <div class="form-group">
+                    <label for="arTrigger">Trigger Keyword / Phrase *</label>
+                    <input type="text" id="arTrigger" placeholder="e.g. !ip, store, rules, download" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="arMatchType">Matching Strategy</label>
+                    <select id="arMatchType">
+                      <option value="contains">Contains (matches anywhere in sentence)</option>
+                      <option value="exact">Exact (matches exact message only)</option>
+                      <option value="startswith">Starts With (matches beginning of message)</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="arResponse">Bot Response *</label>
+                    <textarea id="arResponse" rows="4" placeholder="What should the bot reply?" required></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-primary btn-block">Add Auto-Reply</button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Triggers List -->
+            <div class="card">
+              <div class="card-header flex-between">
+                <h3>Configured Triggers (<span id="arCount">0</span>)</h3>
+                <input type="text" id="arSearch" placeholder="Search triggers..." oninput="filterAutoReplies(this.value)" class="search-input">
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Trigger</th>
+                        <th>Match Type</th>
+                        <th>Response</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="arTableBody">
+                      <tr><td colspan="4" class="text-center text-muted">Loading triggers...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 4: CHAT CLEANER -->
+        <section id="tab-cleaner" class="tab-pane">
+          <div class="section-header">
+            <h2>Chat & Message Cleaner</h2>
+            <p>Remotely purge spam, set channel slowmode, or execute emergency chat locks.</p>
+          </div>
+
+          <div class="dashboard-split">
+            <!-- Purge Controls -->
+            <div class="card">
+              <div class="card-header">
+                <h3>🧹 Quick Channel Purge</h3>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label for="cleanerChannelSelect">Target Channel *</label>
+                  <select id="cleanerChannelSelect">
+                    <option value="">Select channel...</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>Purge Preset Amount</label>
+                  <div class="purge-grid">
+                    <button class="btn btn-outline" onclick="handlePurge(10)">10 Messages</button>
+                    <button class="btn btn-outline" onclick="handlePurge(25)">25 Messages</button>
+                    <button class="btn btn-outline" onclick="handlePurge(50)">50 Messages</button>
+                    <button class="btn btn-danger" onclick="handlePurge(100)">100 Messages</button>
+                  </div>
+                </div>
+
+                <div class="form-group mt-4">
+                  <label>Filter Specific Message Types</label>
+                  <div class="purge-grid">
+                    <button class="btn btn-secondary" onclick="handlePurgeFilter('bots')">🤖 Bots & Webhooks Only</button>
+                    <button class="btn btn-secondary" onclick="handlePurgeFilter('links')">🔗 Links & URLs Only</button>
+                    <button class="btn btn-secondary" onclick="handlePurgeFilter('images')">🖼️ Images Only</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Channel Speed & Lockdown -->
+            <div class="card">
+              <div class="card-header">
+                <h3>⏱️ Slowmode & Channel Lockdown</h3>
+              </div>
+              <div class="card-body">
+                <div class="control-box">
+                  <label for="slowmodeSlider">Channel Slowmode Rate Limit</label>
+                  <div class="slider-wrapper">
+                    <input type="range" id="slowmodeSlider" min="0" max="120" step="5" value="0" oninput="updateSlowmodeLabel(this.value)">
+                    <span id="slowmodeLabel" class="slider-badge">Off (0s)</span>
+                  </div>
+                  <button class="btn btn-primary btn-sm mt-2" onclick="handleApplySlowmode()">Apply Slowmode</button>
+                </div>
+
+                <hr class="divider">
+
+                <div class="control-box">
+                  <h4>🔒 Channel Lockdown</h4>
+                  <p class="text-muted text-sm">Deny SendMessages for @everyone in the selected channel.</p>
+                  <div class="btn-group mt-2">
+                    <button class="btn btn-danger" onclick="handleChannelLock(true)">Lock Channel</button>
+                    <button class="btn btn-success" onclick="handleChannelLock(false)">Unlock Channel</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 5: VOICE & MUSIC HUB -->
+        <section id="tab-music" class="tab-pane">
+          <div class="section-header">
+            <h2>Voice Hub, 24/7 Stay & Music Deck</h2>
+            <p>Control 24/7 Voice Channel Stay, Voice Join/Leave Welcome alerts, TTS spoken greetings, and live audio streaming.</p>
+          </div>
+
+          <div class="card player-card mb-4">
+            <div class="player-body">
+              <div class="player-art" id="playerArt">🎵</div>
+              <div class="player-info">
+                <span class="player-tag" id="playerStatus">Idle • No Song Playing</span>
+                <h3 id="playerTitle">Queue is currently empty</h3>
+                <span id="playerChannel" class="player-channel">Not connected to a voice channel</span>
+              </div>
+            </div>
+
+            <div class="player-controls">
+              <button class="btn btn-icon btn-secondary" onclick="handleMusicControl('pause')" title="Pause / Resume">⏯️</button>
+              <button class="btn btn-icon btn-secondary" onclick="handleMusicControl('skip')" title="Skip Song">⏭️</button>
+              <button class="btn btn-icon btn-danger" onclick="handleMusicControl('stop')" title="Stop & Leave">⏹️</button>
+              
+              <div class="volume-slider-group">
+                <span>🔊</span>
+                <input type="range" id="musicVolume" min="1" max="150" value="100" onchange="handleVolumeChange(this.value)">
+                <span id="volumeValue">100%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <!-- Card 1: 24/7 Voice Channel Stay -->
+            <div class="card">
+              <div class="card-header flex-between">
+                <h3>🎙️ 24/7 Voice Channel Stay</h3>
+                <span id="voice247StatusPill" class="badge-pill">Checking...</span>
+              </div>
+              <div class="card-body">
+                <p class="text-muted text-sm mb-3">Lock the bot permanently into a voice channel. The bot will stay connected 24/7 and automatically reconnect within 5 seconds if disconnected or restarted.</p>
+
+                <div class="form-group">
+                  <label for="voice247ChannelSelect">Select Voice Channel</label>
+                  <select id="voice247ChannelSelect" class="form-control">
+                    <option value="">-- Choose a Voice Channel --</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="voice247DeafenToggle" checked>
+                    <span>Self-Deafen Bot (Saves server & bot bandwidth)</span>
+                  </label>
+                </div>
+
+                <div class="btn-group mt-3">
+                  <button class="btn btn-success" onclick="handleToggleVoice247(true)">🟢 Lock Bot into VC 24/7</button>
+                  <button class="btn btn-danger" onclick="handleToggleVoice247(false)">🔴 Disconnect 24/7</button>
+                </div>
+
+                <div class="info-alert mt-4">
+                  <span>💡 <strong>Tip:</strong> Users can still use <code>/play</code> while 24/7 stay is enabled! Once the music queue finishes, the bot will stay connected in the channel.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Voice Channel Welcome & Goodbye -->
+            <div class="card">
+              <div class="card-header flex-between">
+                <h3>👋 Voice Welcome & Goodbye</h3>
+                <label class="switch">
+                  <input type="checkbox" id="voiceWelcomeToggle">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+              <div class="card-body">
+                <p class="text-muted text-sm mb-3">Post clean rich notifications with member avatars whenever someone joins or leaves a voice channel, plus track their time in VC.</p>
+
+                <div class="form-group">
+                  <label for="voiceWelcomeMode">Alert Delivery Location</label>
+                  <select id="voiceWelcomeMode" class="form-control">
+                    <option value="vc_chat">💬 Voice Channel Text Chat (in the VC itself)</option>
+                    <option value="log_channel">📜 Dedicated Voice Log Channel</option>
+                    <option value="both">💬 VC Chat + 📜 Log Channel</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="voiceLogChannelSelect">Dedicated Voice Log Channel (Optional)</label>
+                  <select id="voiceLogChannelSelect" class="form-control">
+                    <option value="">-- None (Only if using log channel mode) --</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="voiceTtsToggle">
+                    <span>🔊 Audio TTS Spoken Greeting in VC (Speaks when users join the bot's channel)</span>
+                  </label>
+                </div>
+
+                <div class="form-group">
+                  <label for="voiceWelcomeMsg">Welcome Message Template</label>
+                  <input type="text" id="voiceWelcomeMsg" class="form-control" placeholder="Welcome to {channel}, {user}! 👋">
+                  <span class="text-muted text-xs">Placeholders: <code>{user}</code>, <code>{userName}</code>, <code>{channel}</code>, <code>{members}</code>, <code>{server}</code></span>
+                </div>
+
+                <div class="form-group">
+                  <label for="voiceLeaveMsg">Goodbye / Farewell Message Template</label>
+                  <input type="text" id="voiceLeaveMsg" class="form-control" placeholder="{user} left {channel}. Hope to see you soon! 👋">
+                </div>
+
+                <button class="btn btn-primary btn-block mt-3" onclick="handleSaveVoiceWelcome()">Save Voice Alert Settings</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 6: SETTINGS -->
+        <section id="tab-settings" class="tab-pane">
+          <div class="section-header">
+            <h2>Server Maintenance & Bot Settings</h2>
+            <p>Toggle server maintenance lockdown and configure embed colors.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3>🛠️ Maintenance Mode</h3>
+            </div>
+            <div class="card-body">
+              <div class="switch-row">
+                <div>
+                  <strong>Maintenance Lockdown</strong>
+                  <p class="text-muted text-sm">When enabled, regular members are alerted that the server is undergoing maintenance.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="maintenanceSwitch" onchange="handleToggleMaintenance(this.checked)">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+
+              <div class="form-group mt-3">
+                <label for="maintenanceMsg">Custom Maintenance Notice Message</label>
+                <input type="text" id="maintenanceMsg" placeholder="🛠️ Server undergoing scheduled maintenance. Back online soon!">
+              </div>
+              <button class="btn btn-primary" onclick="handleSaveMaintenanceMsg()">Save Notice</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 7: ANTI-NUKE DEFENDER -->
+        <section id="tab-antinuke" class="tab-pane">
+          <div class="section-header">
+            <h2>Anti-Nuke Server Defender</h2>
+            <p>Real-time protection against rogue staff, raid bots, mass channel wipes, and mass bans.</p>
+          </div>
+
+          <div class="dashboard-split">
+            <!-- Protection Settings -->
+            <div class="card">
+              <div class="card-header">
+                <h3>🛡️ Defender Configuration</h3>
+              </div>
+              <div class="card-body">
+                <div class="switch-row">
+                  <div>
+                    <strong>Anti-Nuke Protection Shield</strong>
+                    <p class="text-muted text-sm">Monitors Discord Audit Logs for rapid destructive actions.</p>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" id="antinukeEnabledSwitch" onchange="handleToggleAntiNuke(this.checked)">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+
+                <div class="form-group mt-4">
+                  <label for="antinukePunishment">Automated Punishment on Breach</label>
+                  <select id="antinukePunishment" onchange="handleSaveAntiNukeSettings()">
+                    <option value="ban">🔨 Ban Offender Immediately</option>
+                    <option value="kick">👢 Kick Offender From Server</option>
+                    <option value="strip_roles">✂️ Strip All Admin & Mod Roles</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>Channel Deletions Threshold (per 10s)</label>
+                  <div class="slider-wrapper">
+                    <input type="range" id="limitChannelDelete" min="1" max="10" value="3" oninput="updateLimitLabel('lblChannelDelete', this.value)" onchange="handleSaveAntiNukeSettings()">
+                    <span id="lblChannelDelete" class="slider-badge">3 max</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Channel Creations Threshold (per 10s)</label>
+                  <div class="slider-wrapper">
+                    <input type="range" id="limitChannelCreate" min="1" max="10" value="4" oninput="updateLimitLabel('lblChannelCreate', this.value)" onchange="handleSaveAntiNukeSettings()">
+                    <span id="lblChannelCreate" class="slider-badge">4 max</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Bans & Kicks Threshold (per 10s)</label>
+                  <div class="slider-wrapper">
+                    <input type="range" id="limitBanKick" min="1" max="10" value="3" oninput="updateLimitLabel('lblBanKick', this.value)" onchange="handleSaveAntiNukeSettings()">
+                    <span id="lblBanKick" class="slider-badge">3 max</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Role Deletions Threshold (per 10s)</label>
+                  <div class="slider-wrapper">
+                    <input type="range" id="limitRoleDelete" min="1" max="10" value="3" oninput="updateLimitLabel('lblRoleDelete', this.value)" onchange="handleSaveAntiNukeSettings()">
+                    <span id="lblRoleDelete" class="slider-badge">3 max</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Whitelist & Recent Alerts -->
+            <div class="card">
+              <div class="card-header">
+                <h3>👑 Whitelist Trusted Admins</h3>
+              </div>
+              <div class="card-body">
+                <form id="whitelistForm" onsubmit="handleAddWhitelist(event)" class="form-row">
+                  <input type="text" id="whitelistUserId" placeholder="Enter Discord User ID to Whitelist" required class="flex-1">
+                  <button type="submit" class="btn btn-primary">Whitelist</button>
+                </form>
+
+                <div class="whitelist-box mt-3">
+                  <label class="text-sm text-muted">Currently Whitelisted Admins:</label>
+                  <div id="whitelistContainer" class="whitelist-tags mt-2">
+                    <span class="text-muted text-sm">Loading whitelist...</span>
+                  </div>
+                </div>
+
+                <hr class="divider">
+
+                <h4>🚨 Recent Intercepted Incidents</h4>
+                <div class="table-responsive mt-2">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Action</th>
+                        <th>Offender ID</th>
+                        <th>Punishment</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody id="antinukeLogsTable">
+                      <tr><td colspan="4" class="text-center text-muted">No security incidents detected.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 8: TICKET CONTROL -->
+        <section id="tab-tickets" class="tab-pane">
+          <div class="section-header flex-between">
+            <div>
+              <h2>Support Ticket Control Desk</h2>
+              <p>Monitor, prioritize, lock, and resolve open customer tickets in real-time.</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="loadTickets()">🔄 Refresh Tickets</button>
+          </div>
+
+          <div class="card">
+            <div class="card-header flex-between">
+              <h3>Active Tickets (<span id="ticketCount">0</span>)</h3>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Channel</th>
+                      <th>Ticket Creator</th>
+                      <th>Department</th>
+                      <th>Priority</th>
+                      <th>Claimed By</th>
+                      <th>Opened</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ticketsTableBody">
+                    <tr><td colspan="7" class="text-center text-muted">Loading open tickets...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
