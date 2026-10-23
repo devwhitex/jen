@@ -11,7 +11,7 @@ services:
       - key: CLIENT_ID
         sync: false
       - key: DASHBOARD_PASSCODE
-        value: admin123
+        value: "jenny@jen"
       - key: EMBED_COLOR
         value: "#5865F2"
       - key: DEFAULT_PREFIX
