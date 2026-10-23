@@ -559,8 +559,8 @@ function startKeepAliveServer(client) {
     }
   });
 
-  server.listen(PORT, () => {
-    console.log(`🌐 Web Control Dashboard running at http://localhost:${PORT}`);
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`🌐 Web Control Dashboard running at http://0.0.0.0:${PORT}`);
   });
 
   return server;

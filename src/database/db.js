@@ -11,8 +11,12 @@ if (!fs.existsSync(dataDir)) {
 const dbPath = path.join(dataDir, 'bot.sqlite');
 const db = new Database(dbPath);
 
-// Enable WAL mode for high performance and concurrency
-db.pragma('journal_mode = WAL');
+// Enable WAL mode with graceful fallback for containers
+try {
+  db.pragma('journal_mode = WAL');
+} catch (_) {
+  try { db.pragma('journal_mode = DELETE'); } catch (__) {}
+}
 
 // Initialize database schema
 db.exec(`
